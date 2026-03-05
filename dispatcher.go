@@ -4,7 +4,6 @@ package dispatch
 import (
 	"context"
 	"errors"
-	"os"
 	"os/exec"
 )
 
@@ -46,17 +45,12 @@ func (d *Dispatcher) Run(name string, arg ...string) error {
 		cmd = exec.CommandContext(d.p.Ctx, name, arg...)
 	}
 
-	if d.p.Streamer != nil {
-		if w := d.p.Streamer.Stdout(); w != nil {
-			cmd.Stdout = w
-		}
-		if w := d.p.Streamer.Stderr(); w != nil {
-			cmd.Stderr = w
-		}
-	} else {
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
+	if d.p.Streamer == nil {
+		d.p.Streamer = NewDefaultStreamer()
 	}
+
+	cmd.Stdout = d.p.Streamer.Stdout()
+	cmd.Stderr = d.p.Streamer.Stderr()
 
 	return cmd.Run()
 }
