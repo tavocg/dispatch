@@ -9,7 +9,7 @@ import (
 	"testing"
 )
 
-func TestIntegrationRunPrivilegedWhoami(t *testing.T) {
+func TestIntegrationRunPrivilegedWhoamiUnix(t *testing.T) {
 	if os.Getenv("INTEGRATION") != "1" {
 		t.Skip("set INTEGRATION=1 to run integration tests")
 	}
@@ -19,15 +19,26 @@ func TestIntegrationRunPrivilegedWhoami(t *testing.T) {
 	}
 
 	if os.Geteuid() == 0 {
-		t.Skip("running as root does not require sudo password prompt")
+		t.Skip("running as root does not require privilege escalation prompt")
 	}
 
-	if _, err := exec.LookPath(SudoProg); err != nil {
-		t.Skip("sudo is required for this integration test")
+	_, hasSudo := exec.LookPath(SudoProg)
+	_, hasDoas := exec.LookPath(DoasProg)
+	_, hasPkexec := exec.LookPath(PkexecProg)
+
+	if hasSudo != nil && hasDoas != nil && hasPkexec != nil {
+		t.Skip("one of sudo, doas, or pkexec is required for this integration test")
 	}
 
-	// Invalidate cached credentials so sudo can prompt again when needed.
-	_ = exec.Command(SudoProg, "-k").Run()
+	if hasSudo == nil {
+		// Invalidate cached credentials so sudo can prompt again when needed.
+		_ = exec.Command(SudoProg, "-k").Run()
+	}
+
+	if hasDoas == nil {
+		// Best effort: clear persisted doas auth on implementations that support -L.
+		_ = exec.Command(DoasProg, "-L").Run()
+	}
 
 	d := NewDispatcher(&DispatcherParams{
 		Ctx: context.Background(),
