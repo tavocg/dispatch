@@ -1,3 +1,3 @@
-module github.com/tavocg/dispatcher
+module github.com/tavocg/dispatch
 
 go 1.25.0
