@@ -13,40 +13,50 @@ type Dispatcher struct {
 }
 
 type DispatcherParams struct {
-	Ctx         context.Context
-	Streamer    Streamer
-	Privileged  bool
-	Interactive bool
+	Ctx      context.Context
+	Streamer Streamer
 }
 
 func NewDispatcher(params *DispatcherParams) *Dispatcher {
+	if params == nil {
+		params = &DispatcherParams{}
+	}
+
+	if params.Ctx == nil {
+		params.Ctx = context.Background()
+	}
+
+	if params.Streamer == nil {
+		params.Streamer = NewDefaultStreamer()
+	}
+
 	return &Dispatcher{
 		p:         params,
 		escalator: NewEscalator(),
 	}
 }
 
+func (d *Dispatcher) WithPrivileged() *Dispatcher {
+	d.p.Ctx = withPrivileged(d.p.Ctx)
+	return d
+}
+
+func (d *Dispatcher) WithInteractive() *Dispatcher {
+	d.p.Ctx = withInteractive(d.p.Ctx)
+	return d
+}
+
 func (d *Dispatcher) Run(name string, arg ...string) error {
 	var cmd *exec.Cmd
+	ctx := d.p.Ctx
 
-	d.p.Ctx = withInteractive(d.p.Ctx, d.p.Interactive)
-
-	if d.p.Privileged {
-		if !d.p.Interactive {
-			return errors.New("not interactive, cannot escalate privileges")
-		}
-
-		cmd = d.escalator.CommandContext(d.p.Ctx, name, arg...)
-
+	if isPrivileged(ctx) {
+		cmd = d.escalator.CommandContext(ctx, name, arg...)
 		if cmd == nil {
 			return errors.New("could not escalate privileges")
 		}
 	} else {
-		cmd = exec.CommandContext(d.p.Ctx, name, arg...)
-	}
-
-	if d.p.Streamer == nil {
-		d.p.Streamer = NewDefaultStreamer()
+		cmd = exec.CommandContext(ctx, name, arg...)
 	}
 
 	cmd.Stdout = d.p.Streamer.Stdout()

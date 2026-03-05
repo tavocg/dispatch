@@ -4,13 +4,49 @@ import "context"
 
 type ctxKey int
 
-const interactiveKey ctxKey = iota
+const metadataKey ctxKey = iota
 
-func withInteractive(ctx context.Context, interactive bool) context.Context {
-	return context.WithValue(ctx, interactiveKey, interactive)
+type commandMetadata struct {
+	Privileged  bool
+	Interactive bool
+}
+
+func withCtx(ctx context.Context, metadata commandMetadata) context.Context {
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	return context.WithValue(ctx, metadataKey, metadata)
+}
+
+func getMetadata(ctx context.Context) commandMetadata {
+	if ctx == nil {
+		return commandMetadata{}
+	}
+
+	metadata, ok := ctx.Value(metadataKey).(commandMetadata)
+	if !ok {
+		return commandMetadata{}
+	}
+
+	return metadata
+}
+
+func withPrivileged(ctx context.Context) context.Context {
+	metadata := getMetadata(ctx)
+	metadata.Privileged = true
+	return withCtx(ctx, metadata)
+}
+
+func withInteractive(ctx context.Context) context.Context {
+	metadata := getMetadata(ctx)
+	metadata.Interactive = true
+	return withCtx(ctx, metadata)
+}
+
+func isPrivileged(ctx context.Context) bool {
+	return getMetadata(ctx).Privileged
 }
 
 func isInteractive(ctx context.Context) bool {
-	v, ok := ctx.Value(interactiveKey).(bool)
-	return ok && v
+	return getMetadata(ctx).Interactive
 }
