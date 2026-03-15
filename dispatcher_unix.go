@@ -49,6 +49,7 @@ func (d *UnixDispatcher) WithEscalator(e Escalator) Dispatcher {
 }
 
 func (d *UnixDispatcher) WithPrivileged() Dispatcher {
+	d.p.Interactive = true
 	d.p.Privileged = true
 	return d
 }

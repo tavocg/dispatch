@@ -49,6 +49,7 @@ func (d *WindowsDispatcher) WithEscalator(e Escalator) Dispatcher {
 }
 
 func (d *WindowsDispatcher) WithPrivileged() Dispatcher {
+	d.p.Interactive = true
 	d.p.Privileged = true
 	return d
 }
