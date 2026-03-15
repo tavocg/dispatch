@@ -10,7 +10,11 @@ import (
 
 type WindowsEscalator struct{}
 
-func NewEscalator() Escalator { return WindowsEscalator{} }
+type DefaultEscalator = WindowsEscalator
+
+func NewDefaultEscalator() Escalator { return DefaultEscalator{} }
+
+func NewEscalator() Escalator { return NewDefaultEscalator() }
 
 func (WindowsEscalator) IsPrivilegedUser() bool { return false }
 

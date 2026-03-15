@@ -27,8 +27,9 @@ func NewDispatcher(ctx context.Context) (Dispatcher, error) {
 
 	return &UnixDispatcher{
 		p: &UnixDispatcherParams{
-			Ctx:      ctx,
-			Streamer: NewDefaultStreamer(),
+			Ctx:       ctx,
+			Streamer:  NewDefaultStreamer(),
+			Escalator: NewDefaultEscalator(),
 		},
 	}, nil
 }
@@ -63,7 +64,7 @@ func (d *UnixDispatcher) Run(name string, arg ...string) error {
 
 	cmd = exec.CommandContext(ctx, name, arg...)
 
-	if d.p.Privileged && d.p.Escalator != nil && !d.p.Escalator.IsPrivilegedUser() {
+	if d.p.Privileged && !d.p.Escalator.IsPrivilegedUser() {
 		cmd = d.p.Escalator.CommandContext(ctx, name, arg...)
 	}
 

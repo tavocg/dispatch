@@ -16,14 +16,20 @@ const (
 
 type UnixEscalator struct{}
 
-func NewUnixEscalator() Escalator { return UnixEscalator{} }
+type DefaultEscalator = UnixEscalator
+
+func NewDefaultEscalator() Escalator { return &DefaultEscalator{} }
+
+func NewEscalator() Escalator { return NewDefaultEscalator() }
+
+func NewUnixEscalator() Escalator { return &UnixEscalator{} }
 
 func (UnixEscalator) IsPrivilegedUser() bool {
 	return os.Geteuid() == 0
 }
 
-func (UnixEscalator) CommandContext(ctx context.Context, name string, arg ...string) *exec.Cmd {
-	if os.Geteuid() == 0 {
+func (u *UnixEscalator) CommandContext(ctx context.Context, name string, arg ...string) *exec.Cmd {
+	if u.IsPrivilegedUser() {
 		return exec.CommandContext(ctx, name, arg...)
 	}
 

@@ -29,7 +29,7 @@ func NewDispatcher(ctx context.Context) (Dispatcher, error) {
 		p: &WindowsDispatcherParams{
 			Ctx:       ctx,
 			Streamer:  NewDefaultStreamer(),
-			Escalator: NewEscalator(),
+			Escalator: NewDefaultEscalator(),
 		},
 	}, nil
 }
