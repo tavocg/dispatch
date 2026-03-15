@@ -21,9 +21,10 @@ import (
 )
 
 func main() {
-	d := dispatch.NewDispatcher(&dispatch.DispatcherParams{
-		Ctx: context.Background(),
-	})
+	d, err := dispatch.NewDispatcher(context.Background())
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	// Runs via sudo/doas/pkexec on Unix when needed.
 	if err := d.WithPrivileged().WithInteractive().Run("whoami"); err != nil {

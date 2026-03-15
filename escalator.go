@@ -5,12 +5,7 @@ import (
 	"os/exec"
 )
 
-const (
-	SudoProg   = "sudo"
-	DoasProg   = "doas"
-	PkexecProg = "pkexec"
-)
-
 type Escalator interface {
+	IsPrivilegedUser() bool
 	CommandContext(ctx context.Context, name string, arg ...string) *exec.Cmd
 }
