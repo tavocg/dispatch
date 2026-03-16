@@ -59,22 +59,20 @@ func (d *UnixDispatcher) WithInteractive() Dispatcher {
 	return d
 }
 
-func (d *UnixDispatcher) Run(name string, arg ...string) error {
-	var cmd *exec.Cmd
+func (d *UnixDispatcher) Command(name string, arg ...string) *exec.Cmd {
 	ctx := d.p.Ctx
 
-	cmd = exec.CommandContext(ctx, name, arg...)
-
+	cmd := exec.CommandContext(ctx, name, arg...)
 	if d.p.Privileged && !d.p.Escalator.IsPrivilegedUser() {
 		cmd = d.p.Escalator.CommandContext(ctx, name, arg...)
 	}
 
 	if cmd == nil {
-		return errors.New("nil cmd")
+		return nil
 	}
 
 	cmd.Stdout = d.p.Streamer.Stdout()
 	cmd.Stderr = d.p.Streamer.Stderr()
 
-	return cmd.Run()
+	return cmd
 }

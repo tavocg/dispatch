@@ -27,7 +27,12 @@ func main() {
 	}
 
 	// Runs via sudo/doas/pkexec on Unix when needed.
-	if err := d.WithPrivileged().WithInteractive().Run("whoami"); err != nil {
+	cmd := d.WithPrivileged().WithInteractive().Command("whoami")
+	if cmd == nil {
+		log.Fatal("failed to create command")
+	}
+
+	if err := cmd.Run(); err != nil {
 		log.Fatal(err)
 	}
 }

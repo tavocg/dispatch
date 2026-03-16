@@ -6,6 +6,7 @@ package dispatch
 import (
 	"context"
 	"errors"
+	"os/exec"
 )
 
 type WindowsDispatcher struct {
@@ -59,6 +60,20 @@ func (d *WindowsDispatcher) WithInteractive() Dispatcher {
 	return d
 }
 
-func (d *WindowsDispatcher) Run(string, ...string) error {
-	return errors.New("TODO: Windows dispatcher is not implemented")
+func (d *WindowsDispatcher) Command(name string, arg ...string) *exec.Cmd {
+	ctx := d.p.Ctx
+
+	cmd := exec.CommandContext(ctx, name, arg...)
+	if d.p.Privileged && !d.p.Escalator.IsPrivilegedUser() {
+		cmd = d.p.Escalator.CommandContext(ctx, name, arg...)
+	}
+
+	if cmd == nil {
+		return nil
+	}
+
+	cmd.Stdout = d.p.Streamer.Stdout()
+	cmd.Stderr = d.p.Streamer.Stderr()
+
+	return cmd
 }

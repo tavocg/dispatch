@@ -44,9 +44,12 @@ func TestIntegrationRunPrivilegedWhoamiUnix(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to create dispatcher: %v", err)
 	}
-	d.WithPrivileged().WithInteractive()
+	cmd := d.WithPrivileged().WithInteractive().Command("whoami")
+	if cmd == nil {
+		t.Fatalf("failed to create privileged command")
+	}
 
-	if err := d.Run("whoami"); err != nil {
+	if err := cmd.Run(); err != nil {
 		t.Fatalf("privileged whoami failed: %v", err)
 	}
 }
